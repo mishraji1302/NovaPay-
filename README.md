@@ -1,4 +1,4 @@
-# NeoBank — Upgraded (Tailwind + Gemini Edition)
+# NovaPay — Upgraded (Tailwind + Gemini Edition)
 
 ## Quick Start
 
