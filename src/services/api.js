@@ -1,25 +1,29 @@
-const FINNHUB_KEY = import.meta.env.VITE_FINNHUB_KEY;
-const GEMINI_KEY = import.meta.env.VITE_GEMINI_KEY;
+/**
+ * api.js — Client-side API service.
+ * All requests route through the secure /api backend proxy.
+ * No private API keys are ever stored or exposed on the client.
+ */
 
-export const getStockPrice = async (symbol) => {
-  const res = await fetch(
-    `https://finnhub.io/api/v1/quote?symbol=${symbol}&token=${FINNHUB_KEY}`
-  );
+export const getStockPrice = async (symbol, signal) => {
+  const res = await fetch(`/api/stock?symbol=${encodeURIComponent(symbol)}`, { signal });
+  if (!res.ok) {
+    throw new Error(`Failed to fetch stock price: HTTP ${res.status}`);
+  }
   return res.json();
 };
 
 export const askGemini = async (prompt) => {
-  const res = await fetch(
-    `https://generativelanguage.googleapis.com/v1/models/gemini-pro:generateContent?key=${GEMINI_KEY}`,
-    {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        contents: [{ parts: [{ text: prompt }] }],
-      }),
-    }
-  );
+  const res = await fetch('/api/chat', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      contents: [{ parts: [{ text: prompt }] }],
+    }),
+  });
+  if (!res.ok) {
+    throw new Error(`Failed to contact AI service: HTTP ${res.status}`);
+  }
   return res.json();
 };

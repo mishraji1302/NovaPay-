@@ -1,4 +1,4 @@
-# NovaPay — Upgraded (Tailwind + Gemini Edition)
+# NeoBank — Upgraded (Tailwind + Gemini Edition)
 
 ## Quick Start
 
@@ -13,8 +13,16 @@ npm run dev
 
 | Service | Key in .env | Get it at | Free limit |
 |---------|------------|-----------|-----------|
-| Finnhub | `VITE_FINNHUB_KEY` | https://finnhub.io | 60 req/min |
-| Google Gemini | `VITE_GEMINI_KEY` | https://aistudio.google.com | 15 req/min, 1M tokens/day |
+| Finnhub | `FINNHUB_KEY` | https://finnhub.io | 60 req/min |
+| Google Gemini | `GEMINI_KEY` | https://aistudio.google.com | 15 req/min, 1M tokens/day |
+
+> **Security Note:** API keys are managed exclusively on the backend server (`server/apiProxy.js`). They are never prefixed with `VITE_` and are never exposed or bundled into client-side JavaScript.
+
+## Production Run
+```bash
+npm run build
+npm run start   # runs secure server on port 3000
+```
 
 ## Why Gemini instead of Anthropic?
 Gemini 1.5 Flash is completely free (no credit card), supports streaming, handles financial context well, and has a generous daily quota. The chatbot works identically — Finn still receives live stock data and ML predictions injected into every message.

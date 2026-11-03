@@ -1,27 +1,20 @@
 /**
- * useStockFeed.js — Custom hook that polls Finnhub for stock prices every 15s.
+ * useStockFeed.js — Custom hook that polls backend proxy for stock prices every 15s.
  * Uses AbortController to cancel in-flight requests on unmount.
+ * No API keys are used in the client.
  */
 
 import { useState, useEffect, useRef, useCallback } from "react";
-import { STOCK_SYMBOLS, POLL_INTERVAL, HISTORY_LENGTH, FINNHUB_BASE } from "../data/constants.js";
+import { STOCK_SYMBOLS, POLL_INTERVAL, HISTORY_LENGTH } from "../data/constants.js";
 
-const API_KEY = import.meta.env.VITE_FINNHUB_KEY;
-
-/** Fetch a single stock quote from Finnhub */
+/** Fetch a single stock quote through the secure backend proxy */
 async function fetchQuote(symbol, signal) {
-  console.log("API KEY:", API_KEY);
-  console.log("Fetching:", symbol);
-
-  const url = `${FINNHUB_BASE}/quote?symbol=${encodeURIComponent(symbol)}&token=${API_KEY}`;
+  const url = `/api/stock?symbol=${encodeURIComponent(symbol)}`;
   const res = await fetch(url, { signal });
 
   if (!res.ok) throw new Error(`HTTP ${res.status}`);
 
   const d = await res.json();
-
-  // ✅ correct place
-  console.log("Response:", d);
 
   return {
     symbol,

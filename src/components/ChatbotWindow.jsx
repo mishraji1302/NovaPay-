@@ -7,9 +7,8 @@ import { useState, useRef, useEffect, useCallback } from "react";
 import { useStock } from "../context/StockContext.jsx";
 import { parseIntent, resolveIntent, INTENTS } from "../utils/intentParser.js";
 
-// Google Gemini free API — get key at https://aistudio.google.com (free, no credit card)
-const GEMINI_KEY = import.meta.env.VITE_GEMINI_KEY;
-const GEMINI_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:streamGenerateContent?alt=sse&key=${GEMINI_KEY}`;
+// Backend proxy URL — API keys stay secure on the server
+const CHAT_API_URL = "/api/chat";
 
 function buildGeminiPayload(systemPrompt, history, userMessage) {
   // Gemini uses "contents" array; system prompt goes as first user turn + model ack
@@ -31,10 +30,6 @@ function buildGeminiPayload(systemPrompt, history, userMessage) {
   return {
     contents,
     generationConfig: { maxOutputTokens: 1024, temperature: 0.7 },
-    safetySettings: [
-      { category: "HARM_CATEGORY_HARASSMENT", threshold: "BLOCK_NONE" },
-      { category: "HARM_CATEGORY_HATE_SPEECH", threshold: "BLOCK_NONE" },
-    ]
   };
 }
 
@@ -141,23 +136,12 @@ export default function ChatbotWindow({ fullScreen = false }) {
       return;
     }
 
-    // Gemini API
-    if (!GEMINI_KEY) {
-      setMessages(prev => [...prev, {
-        role: "assistant",
-        content: "⚠ No Gemini API key found. Add VITE_GEMINI_KEY to your .env file.\n\nGet a free key at: https://aistudio.google.com",
-        usedLiveData: false,
-      }]);
-      setLoading(false);
-      return;
-    }
-
     const controller = new AbortController();
     abortRef.current = controller;
     const history = messages.filter(m => m.role !== "system");
 
     try {
-      const res = await fetch(GEMINI_URL, {
+      const res = await fetch(CHAT_API_URL, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         signal: controller.signal,
@@ -166,7 +150,7 @@ export default function ChatbotWindow({ fullScreen = false }) {
 
       if (!res.ok) {
         const err = await res.json().catch(() => ({}));
-        throw new Error(err?.error?.message || `HTTP ${res.status}`);
+        throw new Error(err?.error || err?.error?.message || `HTTP ${res.status}`);
       }
 
       // Stream SSE
@@ -202,7 +186,7 @@ export default function ChatbotWindow({ fullScreen = false }) {
       if (err.name !== "AbortError") {
         setMessages(prev => [...prev, {
           role: "assistant",
-          content: `⚠ Finn couldn't respond: ${err.message}. Please check your VITE_GEMINI_KEY or try again.`,
+          content: `⚠ Finn couldn't respond: ${err.message}. Please check your server GEMINI_KEY configuration or try again.`,
           usedLiveData: false,
         }]);
       }
